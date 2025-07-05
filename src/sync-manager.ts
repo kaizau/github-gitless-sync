@@ -682,11 +682,18 @@ export default class SyncManager {
     await Promise.all(
       commonFiles.map(async (filePath: string) => {
         if (
-          filePath === `${this.vault.configDir}/${MANIFEST_FILE_NAME}` ||
+          filePath === `${this.vault.configDir}/${MANIFEST_FILE_NAME}`
+        ) {
+          // Manifest file must never trigger any action
+          return;
+        }
+
+        if (
           filePath === `${this.vault.configDir}/workspace.json` ||
           filePath === `${this.vault.configDir}/workspace-mobile.json`
         ) {
-          // Manifest and workspace files must never trigger any action
+          // Delete workspace files if found in remote
+          actions.push({ type: "delete_remote", filePath: filePath });
           return;
         }
 
@@ -1065,6 +1072,14 @@ export default class SyncManager {
     }
     // Add them to the metadata store
     files.forEach((filePath: string) => {
+      if (
+        filePath === `${this.vault.configDir}/workspace.json` ||
+        filePath === `${this.vault.configDir}/workspace-mobile.json`
+      ) {
+        // Don't add workspace files to metadata
+        return;
+      }
+
       this.metadataStore.data.files[filePath] = {
         path: filePath,
         sha: null,
