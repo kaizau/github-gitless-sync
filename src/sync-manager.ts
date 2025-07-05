@@ -681,8 +681,12 @@ export default class SyncManager {
     // Get diff for common files
     await Promise.all(
       commonFiles.map(async (filePath: string) => {
-        if (filePath === `${this.vault.configDir}/${MANIFEST_FILE_NAME}`) {
-          // The manifest file must never trigger any action
+        if (
+          filePath === `${this.vault.configDir}/${MANIFEST_FILE_NAME}` ||
+          filePath === `${this.vault.configDir}/workspace.json` ||
+          filePath === `${this.vault.configDir}/workspace-mobile.json`
+        ) {
+          // Manifest and workspace files must never trigger any action
           return;
         }
 
@@ -746,6 +750,14 @@ export default class SyncManager {
 
     // Get diff for files in remote but not in local
     Object.keys(remoteFiles).forEach((filePath: string) => {
+      if (
+        filePath === `${this.vault.configDir}/workspace.json` ||
+        filePath === `${this.vault.configDir}/workspace-mobile.json`
+      ) {
+        // Delete workspace files if found in remote
+        actions.push({ type: "delete_remote", filePath: filePath });
+        return;
+      }
       const remoteFile = remoteFiles[filePath];
       const localFile = localFiles[filePath];
       if (localFile) {
@@ -764,6 +776,13 @@ export default class SyncManager {
 
     // Get diff for files in local but not in remote
     Object.keys(localFiles).forEach((filePath: string) => {
+      if (
+        filePath === `${this.vault.configDir}/workspace.json` ||
+        filePath === `${this.vault.configDir}/workspace-mobile.json`
+      ) {
+        // Skip workspace files
+        return;
+      }
       const remoteFile = remoteFiles[filePath];
       const localFile = localFiles[filePath];
       if (remoteFile) {
