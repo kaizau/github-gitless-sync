@@ -208,6 +208,14 @@ export default class SyncManager {
         const targetPath =
           pathParts.length > 1 ? pathParts.slice(1).join("/") : entry.filename;
 
+        if (
+          targetPath === `${this.vault.configDir}/workspace.json` ||
+          targetPath === `${this.vault.configDir}/workspace-mobile.json`
+        ) {
+          this.logger.info("Skipping workspace file", { targetPath });
+          return;
+        }
+
         if (targetPath === "") {
           // Must be the root folder, skip it.
           // This is really important as that would lead us to try and
@@ -984,7 +992,10 @@ export default class SyncManager {
         folders.push(...res.folders);
       }
       files.forEach((filePath: string) => {
-        if (filePath === `${this.vault.configDir}/workspace.json`) {
+        if (
+          filePath === `${this.vault.configDir}/workspace.json` ||
+          filePath === `${this.vault.configDir}/workspace-mobile.json`
+        ) {
           // Obsidian recommends not syncing the workspace file
           return;
         }
